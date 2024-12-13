@@ -1,4 +1,4 @@
-import {createExpenseModel,getAllExpensesModel} from '../models/expensesModel.mjs'
+import {createExpenseModel,getAllExpensesModel,expenseDeleteModel} from '../models/expensesModel.mjs'
 
 function createExpense(req,res){
     const { expense_name, expense_amount, expense_comments } = req.body;
@@ -61,4 +61,19 @@ function getAllExpenses(req, res) {
         });
     });
 }
-export {createExpense,getAllExpenses};
+
+function expenseDelete(req,res){
+    const {id} = req.params;
+    const data =[id];
+    expenseDeleteModel(data,(err,results)=>{
+        if(err){
+           console.error(err);
+            return res.json({failed:'false',msg:'Failed to Delete Expense!'});
+        }else{
+            res.json({success:'true',msg:'Expense Deleted Successfully!'});
+        }
+    })
+}
+
+
+export {createExpense,getAllExpenses,expenseDelete};

@@ -186,4 +186,9 @@ function getAllExpensesModel(limit, offset, callback) {
     });
 }
 
-export {createExpenseModel,getAllExpensesModel};
+function expenseDeleteModel(data,callback){
+    const query ='DELETE FROM expenses WHERE item_id=?';
+    connection.query(query,data,callback);
+}
+
+export {createExpenseModel,getAllExpensesModel,expenseDeleteModel};

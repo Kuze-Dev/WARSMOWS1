@@ -4,7 +4,7 @@ import footerComponent from '../components/footerComponent.vue';
 import { RouterLink, RouterView } from 'vue-router'
 import { useToast } from "vue-toastification";
 import Swal from 'sweetalert2';
-import { ref, onMounted, watch} from 'vue'
+import { ref, onMounted,onUnmounted,watch} from 'vue'
 import axios from '../../axios';
 
 const toast = useToast();
@@ -245,6 +245,42 @@ const fetchPaginatedExpenses = async () => {
     }
 };
 
+
+const showOptionExpenseModal = ref(false);
+const selectedExpenseId = ref(false);
+const openOptionExpenseModal = (id) => {
+    if (showOptionExpenseModal.value && selectedExpenseId.value === id) {
+    closeOptionExpenseModal(); // Close if clicked again
+  } else {
+    showOptionExpenseModal.value = true;
+    selectedExpenseId.value = id;
+    alert(id);
+    document.addEventListener("mousedown", handleClickOutside);
+  }
+}
+// Function to close the modal and clean up event listeners
+const closeOptionExpenseModal = () => {
+  showOptionExpenseModal.value = false;
+  document.removeEventListener("mousedown", handleClickOutside);
+};
+
+// Handle clicks outside the modal
+const handleClickOutside = (event) => {
+  const modal = document.querySelector(".modal-content"); // Class of your modal content div
+  if (modal && !modal.contains(event.target)) {
+    closeOptionExpenseModal();
+  }
+};
+
+
+
+// Clean up event listener when component unmounts
+onUnmounted(() => {
+  document.removeEventListener("mousedown", handleClickOutside);
+});
+
+
+
 </script>
 
 <template>
@@ -375,7 +411,7 @@ const fetchPaginatedExpenses = async () => {
                                         <td class="px-4 w-2 py-4 text-sm text-gray-800">{{ expense.yearlyTotal }}</td>
                                         <td class="px-4 w-2 py-4 text-sm text-gray-800">
                                             <!--Start Of Option Item Icon -->
-                                            <svg class="mx-auto cursor-pointer" width="24" height="40"
+                                            <svg @click="openOptionExpenseModal(expense.id)" class="mx-auto cursor-pointer" width="24" height="40"
                                                 viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path
                                                     d="M10.325 5.07921C10.751 3.32321 13.249 3.32321 13.675 5.07921C13.7389 5.34301 13.8642 5.58799 14.0407 5.79421C14.2172 6.00043 14.4399 6.16206 14.6907 6.26595C14.9414 6.36984 15.2132 6.41306 15.4838 6.39208C15.7544 6.37109 16.0162 6.28651 16.248 6.14521C17.791 5.20521 19.558 6.97121 18.618 8.51521C18.4769 8.74686 18.3924 9.00854 18.3715 9.27898C18.3506 9.54942 18.3938 9.82098 18.4975 10.0716C18.6013 10.3222 18.7627 10.5448 18.9687 10.7213C19.1747 10.8977 19.4194 11.0231 19.683 11.0872C21.439 11.5132 21.439 14.0112 19.683 14.4372C19.4192 14.5011 19.1742 14.6264 18.968 14.8029C18.7618 14.9794 18.6001 15.2021 18.4963 15.4529C18.3924 15.7036 18.3491 15.9754 18.3701 16.246C18.3911 16.5166 18.4757 16.7785 18.617 17.0102C19.557 18.5532 17.791 20.3202 16.247 19.3802C16.0153 19.2391 15.7537 19.1547 15.4832 19.1337C15.2128 19.1128 14.9412 19.156 14.6906 19.2597C14.44 19.3635 14.2174 19.5249 14.0409 19.7309C13.8645 19.9369 13.7391 20.1816 13.675 20.4452C13.249 22.2012 10.751 22.2012 10.325 20.4452C10.2611 20.1814 10.1358 19.9364 9.95929 19.7302C9.7828 19.524 9.56011 19.3624 9.30935 19.2585C9.05859 19.1546 8.78683 19.1114 8.51621 19.1323C8.24559 19.1533 7.98375 19.2379 7.752 19.3792C6.209 20.3192 4.442 18.5532 5.382 17.0092C5.5231 16.7776 5.60755 16.5159 5.62848 16.2454C5.64942 15.975 5.60624 15.7034 5.50247 15.4528C5.3987 15.2022 5.23726 14.9796 5.03127 14.8032C4.82529 14.6267 4.58056 14.5013 4.317 14.4372C2.561 14.0112 2.561 11.5132 4.317 11.0872C4.5808 11.0233 4.82578 10.898 5.032 10.7215C5.23822 10.545 5.39985 10.3223 5.50375 10.0716C5.60764 9.82079 5.65085 9.54904 5.62987 9.27842C5.60889 9.0078 5.5243 8.74596 5.383 8.51421C4.443 6.97121 6.209 5.20421 7.753 6.14421C8.753 6.75221 10.049 6.21421 10.325 5.07921Z"
@@ -387,6 +423,45 @@ const fetchPaginatedExpenses = async () => {
                                                     stroke-linejoin="round" />
                                             </svg>
                                             <!--End Of Option Item Icon -->
+
+                                            <section
+                                                :class="showOptionExpenseModal && expense.id=== selectedExpenseId ? 'modal-content relative mx-2  font-[sans-serif] right-[75px]' : 'hidden'"
+                                                v-show="expense.id === selectedExpenseId">
+                                                <div v-for="(expense, index) in  expenses"
+                                                    :key="expense.id"
+                                                    v-show="expense.id === selectedExpenseId"
+                                                    class="w-[110px] max-w-sm rounded h-[70px]   bg-[#4E95C9]  border shadow-md absolute">
+                                                    <div class="flex flex-wrap">
+
+                                                        <div class="mx-3 flex justify-center items-center mt-2 pb-1">
+                                                            <svg class="mx-2" width="16" height="17" viewBox="0 0 16 17"
+                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <path
+                                                                    d="M7.932 16.2915C5.90067 16.2915 4.13033 15.6282 2.621 14.3015C1.11167 12.9748 0.238 11.3048 0 9.2915H1.011C1.283 11.0115 2.06667 12.4415 3.362 13.5815C4.65733 14.7215 6.18067 15.2915 7.932 15.2915C9.882 15.2915 11.536 14.6125 12.894 13.2545C14.252 11.8965 14.9313 10.2422 14.932 8.2915C14.9327 6.34084 14.2533 4.6865 12.894 3.3285C11.5347 1.9705 9.88067 1.2915 7.932 1.2915C6.89733 1.2915 5.92467 1.51017 5.014 1.9475C4.10333 2.38484 3.3 2.98684 2.604 3.7535H5.085V4.7535H0.932V0.599504H1.932V2.9875C2.70533 2.13884 3.61133 1.4775 4.65 1.0035C5.68867 0.529504 6.78267 0.292171 7.932 0.291504C9.04067 0.291504 10.08 0.50017 11.05 0.917504C12.02 1.33484 12.8673 1.90584 13.592 2.6305C14.3167 3.35517 14.888 4.20284 15.306 5.1735C15.724 6.14417 15.9327 7.1835 15.932 8.2915C15.9313 9.3995 15.7227 10.4388 15.306 11.4095C14.8893 12.3802 14.318 13.2278 13.592 13.9525C12.866 14.6772 12.0187 15.2482 11.05 15.6655C10.0813 16.0828 9.042 16.2915 7.932 16.2915ZM11.135 12.1455L7.489 8.4995V3.2915H8.489V8.0835L11.843 11.4375L11.135 12.1455Z"
+                                                                    fill="#555555" />
+                                                            </svg>
+                                                            <span
+                                                               
+                                                                class="text-[13px] hover:text-white cursor-pointer text-black ">History</span>
+                                                        </div>
+                                                        <!-- border buttom -->
+                                                        <div class="border-b w-full"></div>
+
+                                                        <div class="mx-4 flex justify-center items-center mt-1 ">
+                                                            <svg class="ml-1 mr-2" width="17" height="28"
+                                                                viewBox="0 0 24 25" fill="none"
+                                                                xmlns="http://www.w3.org/2000/svg">
+                                                                <path
+                                                                    d="M7 21.7622C6.45 21.7622 5.97933 21.5665 5.588 21.1752C5.19667 20.7839 5.00067 20.3129 5 19.7622V6.76221H4V4.76221H9V3.76221H15V4.76221H20V6.76221H19V19.7622C19 20.3122 18.8043 20.7832 18.413 21.1752C18.0217 21.5672 17.5507 21.7629 17 21.7622H7ZM17 6.76221H7V19.7622H17V6.76221ZM9 17.7622H11V8.76221H9V17.7622ZM13 17.7622H15V8.76221H13V17.7622Z"
+                                                                    fill="#F00D0D" />
+                                                            </svg>
+
+                                                            <span 
+                                                                class="text-[13px] hover:text-white cursor-pointer text-black">Delete</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </section>
 
                                         </td>
                                     </tr>
