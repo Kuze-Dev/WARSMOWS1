@@ -235,7 +235,7 @@ const fetchPaginatedExpenses = async () => {
         currentPage.value = response.data.currentPage;
         perPage.value = response.data.perPage;
 
-        // Check if the page is empty, go to the previous page
+        // Check if the page is empty, go to the previous page asdasd
         if (expenses.value.length === 0 && currentPage.value > 1) {
             currentPage.value--;
             fetchPaginatedExpenses();
