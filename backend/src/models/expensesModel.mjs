@@ -187,7 +187,7 @@ function getAllExpensesModel(limit, offset, callback) {
 }
 
 function expenseDeleteModel(data,callback){
-    const query ='DELETE FROM expenses WHERE item_id=?';
+    const query ='DELETE FROM expenses WHERE id=?';
     connection.query(query,data,callback);
 }
 
