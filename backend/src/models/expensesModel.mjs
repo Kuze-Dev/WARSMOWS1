@@ -60,6 +60,17 @@ function getMonthColumn(month) {
 }
 
 
+function insertIntoExpensesHistory(historyData,callback){
+     const query = `INSERT INTO expenses_history (id) VALUES(?)`;
+     connection.query(query,historyData,callback);
+}
+
+
+
+
+
+
+
 function getAllExpensesModel(limit, offset, callback) {
     // Query to fetch the latest year from expenses table
     const latestYearQuery = `
@@ -191,4 +202,4 @@ function expenseDeleteModel(data,callback){
     connection.query(query,data,callback);
 }
 
-export {createExpenseModel,getAllExpensesModel,expenseDeleteModel};
+export {createExpenseModel,getAllExpensesModel,expenseDeleteModel,insertIntoExpensesHistory};

@@ -1,4 +1,4 @@
-import { stockInModel, getStockOutQuantity,stockOutModel, insertStockInHistory, insertStockOutHistory, getStockInPrice, getItemIdFromItemTable,insertExpense,insertStockOutExpense } from '../models/stockModel.mjs';
+import { stockInModel, getStockOutQuantity,stockOutModel, insertStockInHistory, insertStockOutHistory, getStockInPrice, getItemIdFromItemTable,insertExpense,insertStockOutExpense,insertExpenseHistory,insertStockOutExpenseHistory } from '../models/stockModel.mjs';
 
 
 
@@ -34,7 +34,7 @@ function stockInItem(req, res) {
 
             // Add the new quantity_in to the existing quantity_in
             const { quantity_in: previousQuantityIn } = currentQuantity;
-            const updatedQuantityIn = previousQuantityIn + quantity_in; // Adding new quantity_in
+            const updatedQuantityIn = previousQuantityIn + quantity_in;
 
             // Step 3: Proceed with stock in, using the updated quantity_in
             const data = [updatedQuantityIn, price, date_stockIn, comments_in, stockIn_flow, id];
@@ -55,8 +55,7 @@ function stockInItem(req, res) {
                     // Step 5: Insert into the expenses table
                     const expenseData = {
                         item_id: item_id,
-                        stock_id: id, // Assuming `id` is the stock_id
-
+                        stock_id: id,
                     };
 
                     insertExpense(expenseData, (err, expenseResult) => {
@@ -65,13 +64,26 @@ function stockInItem(req, res) {
                             return res.json({ success: false, message: 'Failed to Insert Expense!' });
                         }
 
-                        res.status(200).json({ success: true, message: 'Stock In Added Successfully and Expense Recorded!' });
+                        const expenseId = expenseResult.insertId;
+                        console.log("Id for Expense",expenseId);
+
+                        // Step 6: Insert into expense history
+                        const expenseHistoryData = [expenseId, item_id, id];
+                        insertExpenseHistory(expenseHistoryData, (err, historyResult) => {
+                            if (err) {
+                                console.error(err);
+                                return res.json({ success: false, message: 'Failed to Insert Expense History!' });
+                            }
+
+                            res.status(200).json({ success: true, message: 'Stock In Added, Expense Recorded, and History Logged Successfully!' });
+                        });
                     });
                 });
             });
         });
     });
 }
+
 
 
 function stockOutItem(req, res) {
@@ -156,11 +168,22 @@ function stockOutItem(req, res) {
                                 return res.json({ success: false, message: 'Failed to Insert Expense!' });
                             }
 
-                            res.status(200).json({
-                                success: true,
-                                message: 'Stock Out Added Successfully and Expense Recorded!',
-                                onhand,  // Return the updated onhand value
-                                updatedQuantityOut  // Return the updated quantity_out value
+                            const expenseId = expenseResult.insertId;
+                            console.log('Expense Id Out',expenseId);
+                            // Step 6: Insert into expenses history
+                            const expenseStockOutHistoryData = [expenseId, item_id, id];
+                            insertStockOutExpenseHistory(expenseStockOutHistoryData, (err, historyResult) => {
+                                if (err) {
+                                    console.error(err);
+                                    return res.json({ success: false, message: 'Failed to Insert Expense History!' });
+                                }
+
+                                res.status(200).json({
+                                    success: true,
+                                    message: 'Stock Out Added Successfully, Expense Recorded, and History Logged!',
+                                    onhand,  // Return the updated onhand value
+                                    updatedQuantityOut  // Return the updated quantity_out value
+                                });
                             });
                         });
                     });

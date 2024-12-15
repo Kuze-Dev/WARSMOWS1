@@ -1,18 +1,33 @@
-import {createExpenseModel,getAllExpensesModel,expenseDeleteModel} from '../models/expensesModel.mjs'
+import {createExpenseModel,getAllExpensesModel,expenseDeleteModel,insertIntoExpensesHistory} from '../models/expensesModel.mjs'
 
-function createExpense(req,res){
+function createExpense(req, res) {
     const { expense_name, expense_amount, expense_comments } = req.body;
     const expense_image = req.file ? req.file.filename : null; // Handle cases where the file might not exist
     const expense_createdAt = new Date();
 
     const data = [expense_name, expense_amount, expense_comments, expense_image, expense_createdAt];
 
+    // First insert the expense into the expenses table
     createExpenseModel(data, (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ success: 'false', msg: 'Failed to add expense' });
         }
-        res.status(201).json({ success: 'true', msg: 'Expense added successfully' });
+
+        // Get the generated expense ID (assuming the database is returning the ID)
+        const expenseId = results.insertId; // Use the appropriate property depending on your database
+
+        // Now insert the expense ID into the expenses_history table
+        const historyData = [expenseId]; // You can add more fields for the history as needed
+        insertIntoExpensesHistory(historyData, (historyErr) => {
+            if (historyErr) {
+                console.error(historyErr);
+                return res.status(500).json({ success: 'false', msg: 'Failed to add to expenses history' });
+            }
+
+            // Return a successful response
+            res.status(201).json({ success: 'true', msg: 'Expense added and history updated successfully' });
+        });
     });
 }
 

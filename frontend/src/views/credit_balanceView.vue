@@ -175,23 +175,21 @@ const change = computed(() => {
 const cash_paid = ref('');
 
 
-// Submit payment
-
 const submitPayment = async () => {
     try {
-        const paymentAmount = parseFloat(cash_paid.value);
-        const changeAmount = parseFloat(change.value); // Computed change value
+        const paymentAmount = parseFloat(cash_paid.value); // Ensure to get the raw value
+        const changeAmount = parseFloat(change.value); // Ensure to get the raw value
 
         // Get current date and format it as MM/DD/YYYY
         const currentDate = new Date();
         const formattedDate = `${String(currentDate.getMonth() + 1).padStart(2, '0')}/${String(currentDate.getDate()).padStart(2, '0')}/${currentDate.getFullYear()}`;
         payment_date.value = formattedDate;
 
-        // Prepare the payload
+        // Prepare the payload, passing only the raw values
         const payload = {
             cash_paid: paymentAmount,
             amount_change: changeAmount, // Include the change value
-            payment_date,  // Send only formatted date
+            payment_date: formattedDate, // Use the formatted date directly
         };
 
         // Send PUT request to the backend

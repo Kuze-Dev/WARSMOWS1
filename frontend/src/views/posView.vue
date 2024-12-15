@@ -468,11 +468,12 @@ const fetchTransactionItem = async () => {
     try {
         const response = await axios.get(`/transaction?page=${currentPagePreviousTransaction.value}&limit=${perPagePreviousTransaction.value}`);
         transactions.value = response.data.transactions.map(transaction => {
-            return {
-                ...transaction,
-                items: JSON.parse(`[${transaction.items}]`) // Parse items as JSON array
-            };
-        });
+    return {
+        ...transaction,
+        items: transaction.items ? JSON.parse(`[${transaction.items}]`) : [], // Default to empty array if items are null
+    };
+});
+
         totalTodaysPreviousTransaction.value = response.data.totalTodaysPreviousTransaction;
         currentPagePreviousTransaction.value = response.data.currentPage;
         perPagePreviousTransaction.value = response.data.perPage; // Fixed this line
@@ -1259,12 +1260,17 @@ onMounted(() => {
 
             </section>
         </div>
+        <todayspreviousComponent
+    v-if="transactions.length"
+    :transactions="transactions"
+    :totalTodaysPreviousTransaction="totalTodaysPreviousTransaction"
+    :currentPage="currentPagePreviousTransaction"
+    :perPage="perPagePreviousTransaction"
+    :goToPreviousPage="goToPreviousPagePreviousTransaction"
+    :goToNextPage="goToNextPagePreviousTransaction"
+    class="mt-5"
+/>
 
-        <todayspreviousComponent :transactions="transactions"
-            :totalTodaysPreviousTransaction="totalTodaysPreviousTransaction"
-            :currentPage="currentPagePreviousTransaction" :perPage="perPagePreviousTransaction"
-            :goToPreviousPage="goToPreviousPagePreviousTransaction" :goToNextPage="goToNextPagePreviousTransaction"
-            class="mt-5" />
         <footerComponent class="mt-3" />
 
     </main>

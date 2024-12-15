@@ -11,14 +11,20 @@ const salessummaries = ref([]);
 const fetchSalesSummary = async () => {
     try {
         const response = await axios.get(`/transactionHistory?page=${currentPage.value}&limit=${perPage}`);
-
         salessummaries.value = response.data.transactions.map(salessummary => {
-            return {
-                ...salessummary,
-                // Parse transaction_items_concatenated as a JSON array
-                transaction_items_concatenated: JSON.parse(`[${salessummary.transaction_items_concatenated}]`)
-            };
-        });
+    try {
+        return {
+            ...salessummary,
+            transaction_items_concatenated: JSON.parse(`[${salessummary.transaction_items_concatenated}]`)
+        };
+    } catch (error) {
+        console.error('Error parsing transaction_items_concatenated:', error, salessummary.transaction_items_concatenated);
+        return {
+            ...salessummary,
+            transaction_items_concatenated: []
+        };
+    }
+});
         console.log('Sales Summary:',salessummaries.value);
 
         totalTransactions.value = response.data.totalTransactions;
@@ -253,7 +259,7 @@ onMounted(fetchSalesSummary);
     <table class="font-[sans-serif] w-full">
         <tbody class="bg-white whitespace-nowrap">
             <!-- Loop through transaction items -->
-            <tr v-for="(item, index) in salessummary.transaction_items_concatenated" :key="item.item_id" class="border-b border-gray-300">
+            <tr v-for="(item, index) in salessummary.transaction_items_concatenated.filter(i => i)" :key="item.item_id" class="border-b border-gray-300">
                 <td class="px-4 w-2 py-4 text-center text-sm text-gray-800">
                     <div class="text-[0.7rem] text-gray-800 ">
                                                 <span class="mt-2 block">{{ item.title }}</span>
@@ -278,7 +284,7 @@ onMounted(fetchSalesSummary);
     <table class="font-[sans-serif] w-full">
         <tbody class="bg-white whitespace-nowrap">
             <!-- Loop through transaction items -->
-            <tr v-for="(item, index) in salessummary.transaction_items_concatenated" :key="item.item_id" class="border-b border-gray-300">
+            <tr v-for="(item, index) in salessummary.transaction_items_concatenated.filter(i => i)" :key="item.item_id" class="border-b border-gray-300">
                 <td class="px-4 py-5 text-center text-sm text-gray-800">
                     {{ item.free }}
                 </td>
@@ -296,7 +302,7 @@ onMounted(fetchSalesSummary);
     <table class="font-[sans-serif] w-full">
         <tbody class="bg-white whitespace-nowrap">
             <!-- Loop through transaction items -->
-            <tr v-for="(item, index) in salessummary.transaction_items_concatenated" :key="item.item_id" class="border-b border-gray-300">
+            <tr v-for="(item, index) in salessummary.transaction_items_concatenated.filter(i => i)" :key="item.item_id" class="border-b border-gray-300">
                 <td class="px-4 py-5 text-center text-sm text-gray-800">
                     {{ item.total }}
                 </td>

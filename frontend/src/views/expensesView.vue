@@ -4,6 +4,7 @@ import footerComponent from '../components/footerComponent.vue';
 import { RouterLink, RouterView } from 'vue-router'
 import { useToast } from "vue-toastification";
 import Swal from 'sweetalert2';
+import { formatDate } from '../utils/dateFormatter';
 import { ref, onMounted,onUnmounted,watch} from 'vue'
 import axios from '../../axios';
 
@@ -182,10 +183,7 @@ watch([selectedMonth, selectedYear], async ([newMonth, newYear]) => {
     }
 });
 
-// Call getAllExpenses when the component mounts to load the initial data
-onMounted(() => {
-    getAllExpenses();
-});
+
 
 // Dropdown for selecting the month
 const handleMonthChange = (month) => {
@@ -308,6 +306,51 @@ const deleteExpense =async(id)=>{
 }
 
 
+const showExpensesHistoryModal =ref(false);
+
+const title = ref('');
+const image_item = ref('');
+const expense_image = ref('');
+const expense_name = ref('');
+const openExpensesHistoryModal = (id) => {
+    showExpensesHistoryModal.value = true;
+
+    alert(id);
+    const expense = expenses.value.find((expense) => expense.id === id);
+    if (expense) {
+        // Use expense_name as fallback for title
+        title.value = expense.title || expense.expense_name;
+
+        // Use expense_image as fallback for image_item
+        image_item.value = expense.image_item
+            ? `../src/assets/uploads/${expense.image_item}`
+            : `../src/assets/uploads/${expense.expense_image}`;
+    }
+};
+
+const closeExpensesHistoryModal=()=>{
+    showExpensesHistoryModal.value=false;
+}
+
+
+const expensesHistories = ref([]);
+
+const fetchExpensesHistory = async () => {
+  try {
+    const response = await axios.get(`/getAllExpensesData`);
+    expensesHistories.value = response.data.results;
+    console.log("Expenses History",expensesHistories.value);
+  } catch (err) {
+    console.error('Error Fetching Expenses History:', err);
+  }
+};
+
+
+// Call getAllExpenses when the component mounts to load the initial data
+onMounted(() => {
+    getAllExpenses();
+    fetchExpensesHistory();
+});
 
 </script>
 
@@ -471,7 +514,7 @@ const deleteExpense =async(id)=>{
             d="M7.932 16.2915C5.90067 16.2915 4.13033 15.6282 2.621 14.3015C1.11167 12.9748 0.238 11.3048 0 9.2915H1.011C1.283 11.0115 2.06667 12.4415 3.362 13.5815C4.65733 14.7215 6.18067 15.2915 7.932 15.2915C9.882 15.2915 11.536 14.6125 12.894 13.2545C14.252 11.8965 14.9313 10.2422 14.932 8.2915C14.9327 6.34084 14.2533 4.6865 12.894 3.3285C11.5347 1.9705 9.88067 1.2915 7.932 1.2915C6.89733 1.2915 5.92467 1.51017 5.014 1.9475C4.10333 2.38484 3.3 2.98684 2.604 3.7535H5.085V4.7535H0.932V0.599504H1.932V2.9875C2.70533 2.13884 3.61133 1.4775 4.65 1.0035C5.68867 0.529504 6.78267 0.292171 7.932 0.291504C9.04067 0.291504 10.08 0.50017 11.05 0.917504C12.02 1.33484 12.8673 1.90584 13.592 2.6305C14.3167 3.35517 14.888 4.20284 15.306 5.1735C15.724 6.14417 15.9327 7.1835 15.932 8.2915C15.9313 9.3995 15.7227 10.4388 15.306 11.4095C14.8893 12.3802 14.318 13.2278 13.592 13.9525C12.866 14.6772 12.0187 15.2482 11.05 15.6655C10.0813 16.0828 9.042 16.2915 7.932 16.2915ZM11.135 12.1455L7.489 8.4995V3.2915H8.489V8.0835L11.843 11.4375L11.135 12.1455Z"
             fill="#555555" />
         </svg>
-        <span class="text-[13px] hover:text-white cursor-pointer text-black">History</span>
+        <span @click="openExpensesHistoryModal(expense.id)" class="text-[13px] hover:text-white cursor-pointer text-black">History</span>
       </div>
 
       <!-- border bottom -->
@@ -658,6 +701,247 @@ const deleteExpense =async(id)=>{
 
         </section>
         <!--Start Of Add Expenses Modal -->
+
+
+
+          <!-- Start of Expenses History Modal -->
+          <section v-if="showExpensesHistoryModal" @click.self="closeExpensesHistoryModal"
+            class="fixed before:fixed inset-0 p-4 before:inset-0 flex flex-wrap justify-center items-center top-0 h-full w-full before:w-full before:h-full left-0 before:bg-[rgba(0,0,0,0.5)] overflow-auto font-[sans-serif] z-10 ">
+            <div class="lg:w-[75%] xl:w-[75%]  w-full  border bg-white py-2 relative rounded-lg pb-4">
+                <div class="flex pb-3 border-b  mx-3 border-black">
+                    <div class=" flex flex-1">
+                        <svg class=" mt-2" width="30" height="17" viewBox="0 0 16 17" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M7.932 16.2915C5.90067 16.2915 4.13033 15.6282 2.621 14.3015C1.11167 12.9748 0.238 11.3048 0 9.2915H1.011C1.283 11.0115 2.06667 12.4415 3.362 13.5815C4.65733 14.7215 6.18067 15.2915 7.932 15.2915C9.882 15.2915 11.536 14.6125 12.894 13.2545C14.252 11.8965 14.9313 10.2422 14.932 8.2915C14.9327 6.34084 14.2533 4.6865 12.894 3.3285C11.5347 1.9705 9.88067 1.2915 7.932 1.2915C6.89733 1.2915 5.92467 1.51017 5.014 1.9475C4.10333 2.38484 3.3 2.98684 2.604 3.7535H5.085V4.7535H0.932V0.599504H1.932V2.9875C2.70533 2.13884 3.61133 1.4775 4.65 1.0035C5.68867 0.529504 6.78267 0.292171 7.932 0.291504C9.04067 0.291504 10.08 0.50017 11.05 0.917504C12.02 1.33484 12.8673 1.90584 13.592 2.6305C14.3167 3.35517 14.888 4.20284 15.306 5.1735C15.724 6.14417 15.9327 7.1835 15.932 8.2915C15.9313 9.3995 15.7227 10.4388 15.306 11.4095C14.8893 12.3802 14.318 13.2278 13.592 13.9525C12.866 14.6772 12.0187 15.2482 11.05 15.6655C10.0813 16.0828 9.042 16.2915 7.932 16.2915ZM11.135 12.1455L7.489 8.4995V3.2915H8.489V8.0835L11.843 11.4375L11.135 12.1455Z"
+                                fill="#555555" />
+                        </svg>
+                        <h3 class="text-gray-800 mt-1  font-bold">STOCK HISTORY</h3>
+                    </div>
+
+                    <svg @click="closeExpensesHistoryModal" xmlns="http://www.w3.org/2000/svg"
+                        class="w-3 mx-3 ml-2 mt-1 cursor-pointer shrink-0  " viewBox="0 0 320.591 320.591">
+                        <path
+                            d="M30.391 318.583a30.37 30.37 0 0 1-21.56-7.288c-11.774-11.844-11.774-30.973 0-42.817L266.643 10.665c12.246-11.459 31.462-10.822 42.921 1.424 10.362 11.074 10.966 28.095 1.414 39.875L51.647 311.295a30.366 30.366 0 0 1-21.256 7.288z"
+                            data-original="#000000"></path>
+                        <path
+                            d="M287.9 318.583a30.37 30.37 0 0 1-21.257-8.806L8.83 51.963C-2.078 39.225-.595 20.055 12.143 9.146c11.369-9.736 28.136-9.736 39.504 0l259.331 257.813c12.243 11.462 12.876 30.679 1.414 42.922-.456.487-.927.958-1.414 1.414a30.368 30.368 0 0 1-23.078 7.288z"
+                            data-original="#000000"></path>
+                    </svg>
+                </div>
+                <!-- Start of Image and Title -->
+                <div class="mx-3 mt-3">
+                    <div class="flex justify-start ">
+                        <div class="bg-white lg:w-[10%] xl:w-[10%] w-[30%]    h-[85px]  items-center justify-center ">
+                            <img :src="image_item" class="lg:h-full xl:h-full h-[100%] lg:w-full xl:w-full w-full   "
+                                alt="">
+                        </div>
+                        <div class="mx-1" ></div>
+                        <div>
+                            <h4 class="mt-10  text-[19px] text-gray-800 font-bold">{{ title }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <!-- End of Image and Title -->
+
+                <section class="mx-3">
+                    <div class="w-full py-3">
+                        <div class="font-[sans-serif] overflow-x-auto h-[611px]  border ">
+                            <table class=" w-full bg-[#4E95C9]">
+                                <thead class="whitespace-nowrap">
+                                    <tr>
+                                        <th class="px-5 py-4 text-left text-xs font-semibold  uppercase tracking-wider">
+                                            #
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                QTY
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                TOTAL SALES
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                COMMENTS
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                STATUS
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                TRANSACTION
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                DATE
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold  uppercase tracking-wider ">
+                                            <div class="flex justify-center items-center">
+                                                ACTION
+                                                <svg class="mx-2" width="21" height="20" viewBox="0 0 21 20" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M2.625 7.69157L6.125 4.5249M6.125 4.5249L9.625 7.69157M6.125 4.5249V15.6082M18.375 12.4416L14.875 15.6082M14.875 15.6082L11.375 12.4416M14.875 15.6082V4.5249"
+                                                        stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white whitespace-nowrap">
+                                 
+                                    <tr
+      class="border-b border-gray-300"
+      v-if="expensesHistories.length > 0"
+      v-for="(expensesHistory, index) in expensesHistories"
+      :key="expensesHistory.expenses_history_id"
+      >
+
+      <td class="px-4 w-2 py-4 text-sm text-gray-800">
+        {{ expensesHistory.expenses_history_id }}
+      </td>
+      <td class="px-4 w-2 py-4 text-sm text-gray-800">
+        {{ expensesHistory.quantity_in || '' }} {{ expensesHistory.quantity_out || '' }}
+      </td>
+      <td class="px-4 w-2 py-4 text-sm text-gray-800">
+        {{
+          parseFloat(expensesHistory.total_worth_stockin) === 0.0
+            ? ''
+            : expensesHistory.total_worth_stockin
+        }}
+        {{
+          parseFloat(expensesHistory.total_worth_stockout) === 0.0
+            ? ''
+            : expensesHistory.total_worth_stockout
+        }}
+      </td>
+                                        <td class="px-4 w-2 py-4 text-sm text-gray-800">
+                                            {{ expensesHistory.comments_in ? expensesHistory.comments_in : '' }}
+                                            {{ expensesHistory.comments_out ? expensesHistory.comments_out : '' }}
+                                        </td>
+                                        <td class="px-4 w-2 py-4 text-sm text-gray-800">
+                                            {{ expensesHistory.stockIn_flow }}
+                                            {{ expensesHistory.stockOut_flow }}
+                                        </td>
+                                        <td class="px-4 w-2 py-4 text-sm text-gray-800">
+                                            {{ expensesHistory.stock_status }}
+                                        </td>
+                                        <td class="px-4 w-2 py-4 text-sm text-gray-800">
+                                            {{ expensesHistory.date_stockIn ? formatDate(expensesHistory.date_stockIn) : '' }}
+                                            {{ expensesHistory.date_stockOut ? formatDate(expensesHistory.date_stockOut) : ''
+                                            }}
+                                        </td>
+                                        <td class="px-4 w-2 py-4 text-sm text-gray-800">
+                                            <div class="mx-4">
+                                                <svg
+                                                    class="cursor-pointer" width="25" height="23" viewBox="0 0 25 23"
+                                                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path
+                                                        d="M8.17871 3.54355V1.19824C8.17871 0.991042 8.26761 0.792328 8.42584 0.645815C8.58407 0.499302 8.79868 0.416992 9.02246 0.416992H15.7725C15.9962 0.416992 16.2108 0.499302 16.3691 0.645815C16.5273 0.792328 16.6162 0.991042 16.6162 1.19824V3.54355H23.3662C23.59 3.54355 23.8046 3.62586 23.9628 3.77238C24.1211 3.91889 24.21 4.1176 24.21 4.3248C24.21 4.532 24.1211 4.73072 23.9628 4.87723C23.8046 5.02374 23.59 5.10605 23.3662 5.10605H1.42871C1.20493 5.10605 0.990323 5.02374 0.83209 4.87723C0.673856 4.73072 0.584961 4.532 0.584961 4.3248C0.584961 4.1176 0.673856 3.91889 0.83209 3.77238C0.990323 3.62586 1.20493 3.54355 1.42871 3.54355H8.17871ZM9.86621 3.54355H14.9287V1.98105H9.86621V3.54355ZM3.95996 22.2936C3.73618 22.2936 3.52157 22.2112 3.36334 22.0647C3.20511 21.9182 3.11621 21.7195 3.11621 21.5123V5.10605H21.6787V21.5123C21.6787 21.7195 21.5898 21.9182 21.4316 22.0647C21.2733 22.2112 21.0587 22.2936 20.835 22.2936H3.95996ZM9.86621 17.6061C10.09 17.6061 10.3046 17.5237 10.4628 17.3772C10.6211 17.2307 10.71 17.032 10.71 16.8248V9.0123C10.71 8.8051 10.6211 8.60639 10.4628 8.45988C10.3046 8.31336 10.09 8.23105 9.86621 8.23105C9.64243 8.23105 9.42782 8.31336 9.26959 8.45988C9.11136 8.60639 9.02246 8.8051 9.02246 9.0123V16.8248C9.02246 17.032 9.11136 17.2307 9.26959 17.3772C9.42782 17.5237 9.64243 17.6061 9.86621 17.6061ZM14.9287 17.6061C15.1525 17.6061 15.3671 17.5237 15.5253 17.3772C15.6836 17.2307 15.7725 17.032 15.7725 16.8248V9.0123C15.7725 8.8051 15.6836 8.60639 15.5253 8.45988C15.3671 8.31336 15.1525 8.23105 14.9287 8.23105C14.7049 8.23105 14.4903 8.31336 14.3321 8.45988C14.1739 8.60639 14.085 8.8051 14.085 9.0123V16.8248C14.085 17.032 14.1739 17.2307 14.3321 17.3772C14.4903 17.5237 14.7049 17.6061 14.9287 17.6061Z"
+                                                        fill="#EA0606" />
+                                                </svg>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr v-else>
+        <td colspan="8" class="py-4 text-center text-gray-500 text-xl font-semibold">
+            No stock history found
+        </td>
+    </tr>
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Start of Pages -->
+                    <div
+                        class=" flex justify-center   relative   ">
+                        <!-- Start Of Previous Page -->
+                        <svg class="bg-gray-200 border-l rounded-l-full cursor-pointer" width="40" height="30"
+                            viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M11.707 7.05451C11.8945 7.24203 11.9998 7.49634 11.9998 7.76151C11.9998 8.02667 11.8945 8.28098 11.707 8.4685L7.414 12.7615L11.707 17.0545C11.8892 17.2431 11.99 17.4957 11.9877 17.7579C11.9854 18.0201 11.8802 18.2709 11.6948 18.4563C11.5094 18.6417 11.2586 18.7469 10.9964 18.7492C10.7342 18.7515 10.4816 18.6507 10.293 18.4685L5.293 13.4685C5.10553 13.281 5.00021 13.0267 5.00021 12.7615C5.00021 12.4963 5.10553 12.242 5.293 12.0545L10.293 7.05451C10.4805 6.86703 10.7348 6.76172 11 6.76172C11.2652 6.76172 11.5195 6.86703 11.707 7.05451ZM17.707 7.05451C17.8945 7.24203 17.9998 7.49634 17.9998 7.76151C17.9998 8.02667 17.8945 8.28098 17.707 8.4685L13.414 12.7615L17.707 17.0545C17.8892 17.2431 17.99 17.4957 17.9877 17.7579C17.9854 18.0201 17.8802 18.2709 17.6948 18.4563C17.5094 18.6417 17.2586 18.7469 16.9964 18.7492C16.7342 18.7515 16.4816 18.6507 16.293 18.4685L11.293 13.4685C11.1055 13.281 11.0002 13.0267 11.0002 12.7615C11.0002 12.4963 11.1055 12.242 11.293 12.0545L16.293 7.05451C16.4805 6.86703 16.7348 6.76172 17 6.76172C17.2652 6.76172 17.5195 6.86703 17.707 7.05451Z"
+                                fill="#555555" />
+                        </svg>
+                        <!-- End of Previous -->
+
+                        <!-- Start of Current Page -->
+                        <span class="bg-[#4E95C9] px-3 pt-1 ">1</span>
+                        <!-- End of Current Page -->
+
+                        <!-- Start of Next Page -->
+                        <svg class="bg-gray-200 border-r rounded-r-full cursor-pointer" width="40"
+                            height="30" viewBox="0 0 26 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M13.2024 18.473C13.0179 18.2825 12.9166 18.0265 12.9208 17.7614C12.9251 17.4963 13.0344 17.2437 13.2248 17.0591L17.5854 12.8348L13.361 8.47422C13.1818 8.28275 13.0851 8.02858 13.0915 7.76645C13.0979 7.50432 13.2071 7.25521 13.3954 7.07277C13.5837 6.89032 13.8362 6.78914 14.0984 6.79102C14.3606 6.7929 14.6115 6.89769 14.7972 7.08282L19.7173 12.1615C19.9018 12.352 20.003 12.6079 19.9988 12.873C19.9946 13.1382 19.8853 13.3908 19.6949 13.5753L14.6162 18.4954C14.4257 18.6799 14.1698 18.7811 13.9047 18.7769C13.6395 18.7727 13.3869 18.6634 13.2024 18.473ZM7.20314 18.3778C7.01867 18.1873 6.9174 17.9314 6.9216 17.6662C6.92581 17.4011 7.03514 17.1485 7.22557 16.964L11.5861 12.7396L7.36173 8.37906C7.18259 8.1876 7.08581 7.93343 7.09225 7.6713C7.09868 7.40917 7.20782 7.16006 7.39614 6.97761C7.58447 6.79517 7.83692 6.69399 8.09912 6.69587C8.36132 6.69775 8.61229 6.80254 8.79798 6.98766L13.7181 12.0663C13.9025 12.2568 14.0038 12.5128 13.9996 12.7779C13.9954 13.043 13.8861 13.2956 13.6956 13.4802L8.61696 18.4002C8.42649 18.5847 8.17054 18.686 7.90541 18.6818C7.64028 18.6776 7.38767 18.5682 7.20314 18.3778Z"
+                                fill="#555555" />
+                        </svg>
+                        <!--End of Next Page  -->
+                    </div>
+                    <!-- End of Pages -->
+                </section>
+
+            </div>
+        </section>
+        <!-- End of Expenses History Modal -->
 
 
 

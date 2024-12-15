@@ -31,36 +31,39 @@ const fetchTransactionHistory = async () => {
                 limit: perPage.value,
                 search: searchQuery.value,
                 barangay: searchQueryBarangay.value,
-                date_from: dateFrom.value, // Include dateFrom in request
-                date_to: dateTo.value,    // Include dateTo in request
+                date_from: dateFrom.value,
+                date_to: dateTo.value,
             },
         });
 
-        // Update the value of the transactionHistories reactive reference
         transactionHistories.value = response.data.transactions.map(transactionHistory => {
-            return {
-                ...transactionHistory,
-                // Parse transaction_items_concatenated as a JSON array
-                transaction_items_concatenated: JSON.parse(`[${transactionHistory.transaction_items_concatenated}]`)
-            };
+            if (transactionHistory.transaction_items_concatenated) {
+                return {
+                    ...transactionHistory,
+                    transaction_items_concatenated: JSON.parse(`[${transactionHistory.transaction_items_concatenated}]`),
+                };
+            } else {
+                return {
+                    ...transactionHistory,
+                    transaction_items_concatenated: [], // Fallback to an empty array
+                };
+            }
         });
-        
+
         console.log(transactionHistories.value);
 
         totalTransactions.value = response.data.totalTransactions;
         currentPage.value = response.data.currentPage;
         perPage.value = response.data.perPage;
 
-        // Handle empty results when not on the first page
         if (transactionHistories.value.length === 0 && currentPage.value > 1) {
             currentPage.value--;
-            fetchTransactionHistory(); // Fetch updated page data
+            fetchTransactionHistory();
         }
     } catch (error) {
         console.error('Error fetching transaction history:', error);
     }
 };
-
 
 //Pages
 const currentPage = ref(0);
@@ -553,16 +556,17 @@ onMounted(() => {
     <table class="font-[sans-serif] w-full">
         <tbody class="bg-white whitespace-nowrap">
             <!-- Loop through transaction items -->
-            <tr  v-for="(item, index) in transactionHistory.transaction_items_concatenated" :key="item.item_id" class="border-b border-gray-300">
-                <td class="px-4 w-2 py-4 text-center text-sm text-gray-800">
-                    <div class="text-[0.7rem] text-gray-800 ">
-                                                <span class="mt-2 block">{{ item.title }}</span>
-                                            </div>
-        </td>
-                <td class="px-4 py-4 text-center text-sm text-gray-800">
-                    {{ item.quantity }}
-                </td>
-            </tr>
+            <tr v-for="(item, index) in transactionHistory.transaction_items_concatenated" :key="item?.item_id" class="border-b border-gray-300">
+    <td v-if="item" class="px-4 w-2 py-4 text-center text-sm text-gray-800">
+        <div class="text-[0.7rem] text-gray-800 ">
+            <span class="mt-2 block">{{ item.title }}</span>
+        </div>
+    </td>
+    <td v-if="item" class="px-4 py-4 text-center text-sm text-gray-800">
+        {{ item.quantity }}
+    </td>
+</tr>
+
             <!-- Totals Row -->
             <tr v-if="transactionHistory.transaction_items_concatenated.length" class="bg-gray-100 font-semibold">
                 <td class="px-4 w-2 py-4 text-sm text-gray-800">Total:</td>

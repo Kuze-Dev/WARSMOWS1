@@ -16,6 +16,7 @@ import { router as invoiceRoutes } from './src/routes/invoiceRoutes.mjs';
 import { router as deliveryRoutes } from './src/routes/deliveryRoutes.mjs';
 import { router as dailysalesRoutes } from './src/routes/dailysalesRoutes.mjs';
 import { router as expensesRoutes } from './src/routes/expensesRoutes.mjs';
+import { router as expensesHistoryRoutes } from './src/routes/expensesHistoryRoutes.mjs';
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,7 @@ const port = process.env.SERVER_PORT;
 
 app.use(express.json());
 app.use(cors());
+app.use(expensesHistoryRoutes);
 app.use(expensesRoutes);
 app.use(dailysalesRoutes);
 app.use(deliveryRoutes);

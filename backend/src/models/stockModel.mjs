@@ -99,6 +99,15 @@ function insertStockOutExpense(expenseStockOutData, callback) {
     connection.query(query, data, callback);
 }
 
+function insertExpenseHistory(expenseHistoryData,callback){
+    const query =`INSERT INTO expenses_history ( id,item_id,stock_id) VALUES (?, ?,?)`;
+    connection.query(query,expenseHistoryData,callback);
+}
+
+function insertStockOutExpenseHistory(expenseStockOutHistoryData,callback){
+    const query =`INSERT INTO expenses_history ( id,item_id,stock_id) VALUES (?, ?,?)`;
+    connection.query(query,expenseStockOutHistoryData,callback);
+}
 
 function getStockInPrice(stockId, callback) {
     const query = 'SELECT price FROM stock WHERE stock_id = ?';  // Get the latest stock-in price
@@ -120,4 +129,4 @@ function insertStockOutHistory(stockOutData,callback){
 //    const query = 'SELECT * FROM stocks';
 //    connection.query(query,data,callback);
 // }
-export {stockInModel,getStockInQuantity,getStockOutQuantity,stockOutModel,stockToCustomer,insertStockInHistory,insertStockOutHistory,getStockInPrice,getItemIdFromItemTable,insertExpense,insertStockOutExpense};
+export {stockInModel,getStockInQuantity,getStockOutQuantity,stockOutModel,stockToCustomer,insertStockInHistory,insertStockOutHistory,getStockInPrice,getItemIdFromItemTable,insertExpense,insertStockOutExpense,insertExpenseHistory,insertStockOutExpenseHistory};
